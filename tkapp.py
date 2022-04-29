@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import pickle
 import sys
@@ -27,6 +28,7 @@ class Application(tk.Frame):
         # self.bg_color = self.master.cget("background")
         self.bg_color = "pink"
 
+        self.grid_propagate(False) # 子フレームのgridに対し親フレームサイズ固定
         self.create_frame_races()
         self.create_frame_racetitle()
         self.create_frame_buttons()
@@ -36,7 +38,6 @@ class Application(tk.Frame):
         self.create_frame_wheel()
         self.create_frame_box()
         self.create_frame_output()
-        self.grid_propagate(False) # 子フレームのgridに対し親フレームサイズ固定
         self.pack()
 
     def create_frame_races(self):
@@ -87,14 +88,14 @@ class Application(tk.Frame):
         frame_odds_update = tk.Frame(frame_buttons, bg=self.bg_color)
         btn_odds_update = tk.Button(frame_odds_update, text="update", command=lambda: self.update())
         btn_odds_update.pack()
-        
-        frame_odds_update.grid(row=0, column=0, padx=10, pady=5)
+        # frame_odds_update.grid(row=0, column=0, padx=10, pady=5)
+        frame_odds_update.pack(side="left", padx=10, pady=5)
 
         frame_odds_calc = tk.Frame(frame_buttons, bg=self.bg_color)
-        btn_odds_calc = tk.Button(frame_odds_calc, text="calc", command=lambda: self.update())
-        btn_odds_calc.pack()
-        
-        frame_odds_calc.grid(row=0, column=1, padx=10, pady=5)
+        btn_odds_calc = tk.Button(frame_odds_calc, text="calc", command=lambda: self.calc())
+        btn_odds_calc.pack()     
+        # frame_odds_calc.grid(row=0, column=1, padx=10, pady=5)
+        frame_odds_calc.pack(side="left", pady=5)
 
         frame_buttons.grid(row=0, column=4, padx=10, pady=5, sticky=tk.NE)
 
@@ -180,101 +181,135 @@ class Application(tk.Frame):
         label_odds7.pack(anchor=tk.E)
         label_odds8.pack(anchor=tk.E)
 
-        frame_odds.grid(row=1, column=1, rowspan=3, sticky=tk.EW)
+        frame_odds.grid(row=1, column=1, rowspan=3, sticky=tk.NW)
 
     def create_frame_bettype(self):
         frame_bettype = tk.LabelFrame(self, text="bet type")
-        var = tk.IntVar()
-        var.set(0)
-        rbn_win = tk.Radiobutton(frame_bettype, value=0, variable=var, text="win")
-        rbn_exacta = tk.Radiobutton(frame_bettype, value=1, variable=var, text="exacta")
-        rbn_quinella = tk.Radiobutton(frame_bettype, value=2, variable=var, text="quinella")
-        rbn_tierce = tk.Radiobutton(frame_bettype, value=3, variable=var, text="tierce")
-        rbn_trio = tk.Radiobutton(frame_bettype, value=4, variable=var, text="trio")
-        rbn_wide = tk.Radiobutton(frame_bettype, value=5, variable=var, text="wide")
-        rbn_win.grid(row=0, column=0)
-        rbn_exacta.grid(row=0, column=1)
-        rbn_quinella.grid(row=0, column=2)
-        rbn_tierce.grid(row=0, column=3)
-        rbn_trio.grid(row=0, column=4)
-        rbn_wide.grid(row=0, column=5)
+        self.radio_var = tk.IntVar(value=0)
+        rbn_win = tk.Radiobutton(frame_bettype, value=0, variable=self.radio_var, text="win")
+        rbn_exacta = tk.Radiobutton(frame_bettype, value=1, variable=self.radio_var, text="exacta")
+        rbn_quinella = tk.Radiobutton(frame_bettype, value=2, variable=self.radio_var, text="quinella")
+        rbn_tierce = tk.Radiobutton(frame_bettype, value=3, variable=self.radio_var, text="tierce")
+        rbn_trio = tk.Radiobutton(frame_bettype, value=4, variable=self.radio_var, text="trio")
+        rbn_wide = tk.Radiobutton(frame_bettype, value=5, variable=self.radio_var, text="wide")
+        rbn_win.pack(side="left")
+        rbn_exacta.pack(side="left")
+        rbn_quinella.pack(side="left")
+        rbn_tierce.pack(side="left")
+        rbn_trio.pack(side="left")
+        rbn_wide.pack(side="left")
         frame_bettype.grid(row=1, column=4, columnspan=3, sticky=tk.W)
 
     def create_frame_wheel(self):
         frame_wheel = tk.Frame(self, bg=self.bg_color)
 
         frame_wheel1st = tk.LabelFrame(frame_wheel, text="wheel 1st")
-        chk1 = tk.Checkbutton(frame_wheel1st, text="1")
-        chk2 = tk.Checkbutton(frame_wheel1st, text="2")
-        chk3 = tk.Checkbutton(frame_wheel1st, text="3")
-        chk4 = tk.Checkbutton(frame_wheel1st, text="4")
-        chk5 = tk.Checkbutton(frame_wheel1st, text="5")
-        chk6 = tk.Checkbutton(frame_wheel1st, text="6")
-        chk7 = tk.Checkbutton(frame_wheel1st, text="7")
-        chk8 = tk.Checkbutton(frame_wheel1st, text="8")
-        chk1.grid(row=0, column=0)
-        chk2.grid(row=0, column=1)
-        chk3.grid(row=0, column=2)
-        chk4.grid(row=0, column=3)
-        chk5.grid(row=1, column=0)
-        chk6.grid(row=1, column=1)
-        chk7.grid(row=1, column=2)
-        chk8.grid(row=1, column=3)
+        self.chk_w11 = tk.BooleanVar(value=False)
+        self.chk_w12 = tk.BooleanVar(value=False)
+        self.chk_w13 = tk.BooleanVar(value=False)
+        self.chk_w14 = tk.BooleanVar(value=False)
+        self.chk_w15 = tk.BooleanVar(value=False)
+        self.chk_w16 = tk.BooleanVar(value=False)
+        self.chk_w17 = tk.BooleanVar(value=False)
+        self.chk_w18 = tk.BooleanVar(value=False)
+        self.chk_w21 = tk.BooleanVar(value=False)
+        self.chk_w22 = tk.BooleanVar(value=False)
+        self.chk_w23 = tk.BooleanVar(value=False)
+        self.chk_w24 = tk.BooleanVar(value=False)
+        self.chk_w25 = tk.BooleanVar(value=False)
+        self.chk_w26 = tk.BooleanVar(value=False)
+        self.chk_w27 = tk.BooleanVar(value=False)
+        self.chk_w28 = tk.BooleanVar(value=False)
+        self.chk_w31 = tk.BooleanVar(value=False)
+        self.chk_w32 = tk.BooleanVar(value=False)
+        self.chk_w33 = tk.BooleanVar(value=False)
+        self.chk_w34 = tk.BooleanVar(value=False)
+        self.chk_w35 = tk.BooleanVar(value=False)
+        self.chk_w36 = tk.BooleanVar(value=False)
+        self.chk_w37 = tk.BooleanVar(value=False)
+        self.chk_w38 = tk.BooleanVar(value=False)
+
+        chk11 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w11, text="1")
+        chk12 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w12, text="2")
+        chk13 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w13, text="3")
+        chk14 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w14, text="4")
+        chk15 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w15, text="5")
+        chk16 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w16, text="6")
+        chk17 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w17, text="7")
+        chk18 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w18, text="8")
+        chk11.grid(row=0, column=0)
+        chk12.grid(row=0, column=1)
+        chk13.grid(row=0, column=2)
+        chk14.grid(row=0, column=3)
+        chk15.grid(row=1, column=0)
+        chk16.grid(row=1, column=1)
+        chk17.grid(row=1, column=2)
+        chk18.grid(row=1, column=3)
 
         frame_wheel1st.grid(row=0, column=0, sticky=tk.NW)
 
         frame_wheel2nd = tk.LabelFrame(frame_wheel, text="2nd")
-        chk1 = tk.Checkbutton(frame_wheel2nd, text="1")
-        chk2 = tk.Checkbutton(frame_wheel2nd, text="2")
-        chk3 = tk.Checkbutton(frame_wheel2nd, text="3")
-        chk4 = tk.Checkbutton(frame_wheel2nd, text="4")
-        chk5 = tk.Checkbutton(frame_wheel2nd, text="5")
-        chk6 = tk.Checkbutton(frame_wheel2nd, text="6")
-        chk7 = tk.Checkbutton(frame_wheel2nd, text="7")
-        chk8 = tk.Checkbutton(frame_wheel2nd, text="8")
-        chk1.grid(row=0, column=0)
-        chk2.grid(row=0, column=1)
-        chk3.grid(row=0, column=2)
-        chk4.grid(row=0, column=3)
-        chk5.grid(row=1, column=0)
-        chk6.grid(row=1, column=1)
-        chk7.grid(row=1, column=2)
-        chk8.grid(row=1, column=3)
+        chk21 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w21, text="1")
+        chk22 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w22, text="2")
+        chk23 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w23, text="3")
+        chk24 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w24, text="4")
+        chk25 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w25, text="5")
+        chk26 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w26, text="6")
+        chk27 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w27, text="7")
+        chk28 = tk.Checkbutton(frame_wheel2nd, variable=self.chk_w28, text="8")
+        chk21.grid(row=0, column=0)
+        chk22.grid(row=0, column=1)
+        chk23.grid(row=0, column=2)
+        chk24.grid(row=0, column=3)
+        chk25.grid(row=1, column=0)
+        chk26.grid(row=1, column=1)
+        chk27.grid(row=1, column=2)
+        chk28.grid(row=1, column=3)
 
         frame_wheel2nd.grid(row=0, column=1, padx=10, sticky=tk.NW)
 
         frame_wheel3rd = tk.LabelFrame(frame_wheel, text="3rd")
-        chk1 = tk.Checkbutton(frame_wheel3rd, text="1")
-        chk2 = tk.Checkbutton(frame_wheel3rd, text="2")
-        chk3 = tk.Checkbutton(frame_wheel3rd, text="3")
-        chk4 = tk.Checkbutton(frame_wheel3rd, text="4")
-        chk5 = tk.Checkbutton(frame_wheel3rd, text="5")
-        chk6 = tk.Checkbutton(frame_wheel3rd, text="6")
-        chk7 = tk.Checkbutton(frame_wheel3rd, text="7")
-        chk8 = tk.Checkbutton(frame_wheel3rd, text="8")
-        chk1.grid(row=0, column=0)
-        chk2.grid(row=0, column=1)
-        chk3.grid(row=0, column=2)
-        chk4.grid(row=0, column=3)
-        chk5.grid(row=1, column=0)
-        chk6.grid(row=1, column=1)
-        chk7.grid(row=1, column=2)
-        chk8.grid(row=1, column=3)
+        chk31 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w31, text="1")
+        chk32 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w32, text="2")
+        chk33 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w33, text="3")
+        chk34 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w34, text="4")
+        chk35 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w35, text="5")
+        chk36 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w36, text="6")
+        chk37 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w37, text="7")
+        chk38 = tk.Checkbutton(frame_wheel3rd, variable=self.chk_w38, text="8")
+        chk31.grid(row=0, column=0)
+        chk32.grid(row=0, column=1)
+        chk33.grid(row=0, column=2)
+        chk34.grid(row=0, column=3)
+        chk35.grid(row=1, column=0)
+        chk36.grid(row=1, column=1)
+        chk37.grid(row=1, column=2)
+        chk38.grid(row=1, column=3)
 
         frame_wheel3rd.grid(row=0, column=3, sticky=tk.NW)
 
         frame_wheel.grid(row=2, column=4, sticky=tk.NS)
 
     def create_frame_box(self):
-        frame_box = tk.LabelFrame(self, text="box")
-        chk1 = tk.Checkbutton(frame_box, text="1")
-        chk2 = tk.Checkbutton(frame_box, text="2")
-        chk3 = tk.Checkbutton(frame_box, text="3")
-        chk4 = tk.Checkbutton(frame_box, text="4")
-        chk5 = tk.Checkbutton(frame_box, text="5")
-        chk6 = tk.Checkbutton(frame_box, text="6")
-        chk7 = tk.Checkbutton(frame_box, text="7")
-        chk8 = tk.Checkbutton(frame_box, text="8")
+        frame_box_etc = tk.Frame(self, bg=self.bg_color)
+
+        frame_box = tk.LabelFrame(frame_box_etc, text="box")
+        self.chk_b1 = tk.BooleanVar(value=False)
+        self.chk_b2 = tk.BooleanVar(value=False)
+        self.chk_b3 = tk.BooleanVar(value=False)
+        self.chk_b4 = tk.BooleanVar(value=False)
+        self.chk_b5 = tk.BooleanVar(value=False)
+        self.chk_b6 = tk.BooleanVar(value=False)
+        self.chk_b7 = tk.BooleanVar(value=False)
+        self.chk_b8 = tk.BooleanVar(value=False)
+        chk1 = tk.Checkbutton(frame_box, variable=self.chk_b1, text="1")
+        chk2 = tk.Checkbutton(frame_box, variable=self.chk_b2, text="2")
+        chk3 = tk.Checkbutton(frame_box, variable=self.chk_b3, text="3")
+        chk4 = tk.Checkbutton(frame_box, variable=self.chk_b4, text="4")
+        chk5 = tk.Checkbutton(frame_box, variable=self.chk_b5, text="5")
+        chk6 = tk.Checkbutton(frame_box, variable=self.chk_b6, text="6")
+        chk7 = tk.Checkbutton(frame_box, variable=self.chk_b7, text="7")
+        chk8 = tk.Checkbutton(frame_box, variable=self.chk_b8, text="8")
         chk1.grid(row=0, column=0)
         chk2.grid(row=0, column=1)
         chk3.grid(row=0, column=2)
@@ -284,18 +319,35 @@ class Application(tk.Frame):
         chk7.grid(row=0, column=6)
         chk8.grid(row=0, column=7)
 
-        frame_box.grid(row=3, column=4, sticky=tk.NS+tk.W)
+        frame_box.pack(side="left")
+
+        frame_options = tk.LabelFrame(frame_box_etc, text="option")
+        self.chk_trn = tk.BooleanVar(value=False)
+        chk_turnup = tk.Checkbutton(frame_options, variable=self.chk_trn, text="1st<=>2nd")
+        chk_turnup.pack()
+        frame_options.pack(side="left", padx=10)
+
+        btn_clear = tk.Button(frame_box_etc, text="clear", command=lambda: self.check_clear())
+        btn_clear.pack(side="left", pady=6, anchor=tk.S)
+
+        frame_box_etc.grid(row=3, column=4, sticky=tk.NS+tk.W)
 
     def create_frame_output(self):
         frame_output = tk.Frame(self, bg=self.bg_color)
-        label_numofbets = tk.Label(frame_output, text="Number of Bets:")
-        label_number_bets = tk.Label(frame_output, text="6")
-        label_synodds = tk.Label(frame_output, text="Syntheic Odds:")
-        label_syntheic_odds = tk.Label(frame_output, text="3.3")
-        label_numofbets.pack(side="left")
-        label_number_bets.pack(side="left")
-        label_synodds.pack(side="left")
+        
+        self.number_of_bets = tk.StringVar(value="")
+        self.syntheic_odds = tk.StringVar(value="")
+
+        tag_number_of_bets = tk.Label(frame_output, text="Number of Bets:")
+        label_number_of_bets = tk.Label(frame_output, textvariable=self.number_of_bets)
+        tag_syntheic_odds = tk.Label(frame_output, text="Syntheic Odds:")
+        label_syntheic_odds = tk.Label(frame_output, textvariable=self.syntheic_odds)
+        
+        tag_number_of_bets.pack(side="left")
+        label_number_of_bets.pack(side="left")
+        tag_syntheic_odds.pack(side="left", padx=10)
         label_syntheic_odds.pack(side="left")
+
         frame_output.grid(row=4, column=0, padx=10, pady=7, sticky=tk.NW)
 
     def select_race(self, race):
@@ -347,6 +399,56 @@ class Application(tk.Frame):
         self.odds6.set(win_odds[5])
         self.odds7.set(win_odds[6])
         self.odds8.set(win_odds[7])
+
+    def check_clear(self):
+        self.chk_w11.set(0); self.chk_w12.set(0); self.chk_w13.set(0); self.chk_w14.set(0)
+        self.chk_w15.set(0); self.chk_w16.set(0); self.chk_w17.set(0); self.chk_w18.set(0)
+        self.chk_w21.set(0); self.chk_w22.set(0); self.chk_w23.set(0); self.chk_w24.set(0)
+        self.chk_w25.set(0); self.chk_w26.set(0); self.chk_w27.set(0); self.chk_w28.set(0)
+        self.chk_w31.set(0); self.chk_w32.set(0); self.chk_w33.set(0); self.chk_w34.set(0)
+        self.chk_w35.set(0); self.chk_w36.set(0); self.chk_w37.set(0); self.chk_w38.set(0)
+        self.chk_b1.set(0); self.chk_b2.set(0); self.chk_b3.set(0); self.chk_b4.set(0)
+        self.chk_b5.set(0); self.chk_b6.set(0); self.chk_b7.set(0); self.chk_b8.set(0)
+        self.chk_trn.set(0)
+        self.number_of_bets.set(""); self.syntheic_odds.set("")
+
+    def bets(self):
+        w1 = [self.chk_w11.get(), self.chk_w12.get(), self.chk_w13.get(), self.chk_w14.get()]
+        w1 += [self.chk_w15.get(), self.chk_w16.get(), self.chk_w17.get(), self.chk_w18.get()]
+        idx1 = [i+1 for i, w in enumerate(w1) if w]
+        
+        w2 = [self.chk_w21.get(), self.chk_w22.get(), self.chk_w23.get(), self.chk_w24.get()]
+        w2 += [self.chk_w25.get(), self.chk_w26.get(), self.chk_w27.get(), self.chk_w28.get()]
+        idx2 = [i+1 for i, w in enumerate(w2) if w]
+
+        w3 = [self.chk_w31.get(), self.chk_w32.get(), self.chk_w33.get(), self.chk_w34.get()]
+        w3 += [self.chk_w35.get(), self.chk_w36.get(), self.chk_w37.get(), self.chk_w38.get()]
+        idx3 = [i+1 for i, w in enumerate(w3) if w]
+
+        bx = [self.chk_b1.get(), self.chk_b2.get(), self.chk_b3.get(), self.chk_b4.get()]
+        bx += [self.chk_b5.get(), self.chk_b6.get(), self.chk_b7.get(), self.chk_b8.get()]
+        idx4 = [i+1 for i, b in enumerate(bx) if b]
+
+        return idx1, idx2, idx3, idx4
+
+    def calc_syntheic_odds(self, l_odds):
+        return 1/np.reciprocal(l_odds).sum()
+
+    def calc(self):
+        bets = self.bets()
+        bettype = self.radio_var.get()
+        if bettype == 0: # win
+            if bets[0]:
+                self.number_of_bets.set(len(bets[0]))
+                l_odds = [self.odds_d[str(bet)] for bet in bets[0]]
+                s_odds = self.calc_syntheic_odds(l_odds)
+                self.syntheic_odds.set(round(s_odds, 1))
+                for bet in bets[0]:
+                    odds  = self.odds_d[str(bet)]
+                    buy = 3000 * s_odds / odds
+                    print(bet, odds, round(buy))
+            else:
+                print("woo")
 
     def run(self):
         self.mainloop()
