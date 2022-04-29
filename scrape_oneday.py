@@ -29,7 +29,7 @@ def get_meta(dt, place, entry_url):
     res = requests.get(entry_url, headers=ua)
     soup = BeautifulSoup(res.content, "html.parser")
     tag = soup.select_one("#RCdata1 span")
-    r = tag.text
+    r = tag.text.strip("R")
     tag = soup.select_one("#RCdata2 h3")
     dsc = re.sub("\xa0", "", tag.text.strip())
     meta += [r, dsc]
