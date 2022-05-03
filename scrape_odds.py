@@ -88,7 +88,7 @@ def odds_dict(dt, place, raceNo):
     quinella_df = race[2][1][2]
     exacta_df = race[2][2][2]
     wide_df = race[2][3]
-    trio_dfs = race[2][4]
+    trio_dfs = race[2][4][2:]
     trifs = race[3]
     
     odds_d = {}

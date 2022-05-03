@@ -461,15 +461,18 @@ class Application(tk.Frame):
 
     def calc_wins(self, bets):
         sellctions = [str(bet) for bet in bets]
-        oddses = [self.odds_d[s] for s in sellctions]
+        oddses = [self.odds_d[str(bet)] for bet in bets]
         syn_odds = self.calc_syntheic_odds(oddses)
+        sellctions = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
 
         return syn_odds, sellctions
 
-    def calc_exacta_box(self, bets):
+    def calc_permutation(self, bets, cmb=2):
         selections, oddses = [], []
-        for pair in itertools.permutations(bets, 2):
+        for pair in itertools.permutations(bets, cmb):
             bet = str(pair[0]) + "-" + str(pair[1])
+            if cmb == 3:
+                bet += "-" + str(pair[2])
             odds = self.odds_d[bet]
             oddses.append(odds)
             selections.append((bet, odds))
@@ -477,10 +480,14 @@ class Application(tk.Frame):
 
         return syn_odds, selections
 
-    def calc_quinella_box(self, bets):
+    def calc_combination(self, bets, cmb=2, wide=False):
         selections, oddses = [], []
-        for pair in itertools.combinations(bets, 2):
-            bet = str(pair[0]) + "-" + str(pair[1])
+        for pair in itertools.combinations(bets, cmb):
+            bet = str(pair[0]) + "=" + str(pair[1])
+            if cmb == 3:
+                bet += "=" + str(pair[2])
+            if wide:
+                bet = bet.replace("=", "w")
             odds = self.odds_d[bet]
             oddses.append(odds)
             selections.append((bet, odds))
@@ -493,58 +500,59 @@ class Application(tk.Frame):
         bettype = self.radio_var.get()
         self.show_bets.delete("1.0", tk.END)
         self.outputs = []
-        if bettype == 0: # all
-            bets = chk_bets[3]
-            if bets:
-                w_synodds, w_selections = self.calc_wins(bets)
-                q_synodds, q_selections = self.calc_quinella_box(bets)
-                e_synodds, e_selections = self.calc_exacta_box(bets)
-            w_txt = "win :    " + str(len(w_selections)).rjust(3) + str(round(w_synodds, 1)).rjust(6)
-            q_txt = "quinella:" + str(len(q_selections)).rjust(3) + str(round(q_synodds,1)).rjust(6)
-            e_txt = "exacta : " + str(len(e_selections)).rjust(3) + str(round(e_synodds,1)).rjust(6)
-            self.outputs = [w_txt, q_txt, e_txt]
 
-        if bettype == 1: # win
-            bets = chk_bets[0]
-            if bets:
-                synodds, selections = self.calc_wins(bets)
-                self.number_of_bets.set(len(bets))
-                self.syntheic_odds.set(round(synodds, 1))
-                for bet in selections:
-                    odds  = self.odds_d[str(bet)]
-                    buy = 3000 * synodds / odds
-                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
-                    self.outputs.append(txt)
-            else:
-                print("woo")
-        if bettype == 2: # exacta
+        if chk_bets[3]: # box
             bets = chk_bets[3]
-            if bets:
-                synodds, selections = self.calc_exacta_box(bets)
-                self.number_of_bets.set(len(selections))
-                self.syntheic_odds.set(round(synodds, 1))
-                for bet, odds in selections:
-                    # odds  = self.odds_d[str(bet)]
-                    buy = 3000 * synodds / odds
-                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
-                    self.outputs.append(txt)     
-            else:
-                print("flitter!")
-        if bettype == 3: # quinella
-            bets = chk_bets[3]
-            if bets:
-                synodds, selections = self.calc_quinella_box(bets)
-                self.number_of_bets.set(len(selections))
-                self.syntheic_odds.set(round(synodds, 1))
-                for bet, odds in selections:
-                    # odds  = self.odds_d[str(bet)]
-                    buy = 3000 * synodds / odds
-                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
-                    self.outputs.append(txt)       
-            else:
-                print("flitter!")
+            win_synodds, win_selections = self.calc_wins(bets)
+            exa_synodds, exa_selections = self.calc_permutation(bets)
+            qin_synodds, qin_selections = self.calc_combination(bets)
+            tie_synodds, tie_selections = self.calc_permutation(bets, cmb=3)    
+            tri_synodds, tri_selections = self.calc_combination(bets, cmb=3)
+            wid_synodds, wid_selections = self.calc_combination(bets, wide=True)
+            if bettype == 0: # all
+                win_txt = "win :    " + str(len(win_selections)).rjust(3) + str(round(win_synodds, 1)).rjust(6)
+                exa_txt = "exacta : " + str(len(exa_selections)).rjust(3) + str(round(exa_synodds,1)).rjust(6)
+                qin_txt = "quinella:" + str(len(qin_selections)).rjust(3) + str(round(qin_synodds,1)).rjust(6)
+                tie_txt = "tierce : " + str(len(tie_selections)).rjust(3) + str(round(tie_synodds, 1)).rjust(6)
+                tri_txt = "trio :   " + str(len(tri_selections)).rjust(3) + str(round(tri_synodds,1)).rjust(6)
+                wid_txt = "wide :   " + str(len(wid_selections)).rjust(3) + str(round(wid_synodds,1)).rjust(6)
+                self.outputs = [win_txt, exa_txt, qin_txt, tie_txt, tri_txt, wid_txt]
+                for output in self.outputs:
+                    self.show_bets.insert(tk.END, output + "\n")
+            if bettype == 1: # win
+                self.output_for_textbox(win_synodds, win_selections)
+            if bettype == 2: # exacta
+                self.output_for_textbox(exa_synodds, exa_selections)
+            if bettype == 3: # quinella
+                self.output_for_textbox(qin_synodds, qin_selections)    
+            if bettype == 4: # tierce
+                self.output_for_textbox(tie_synodds, tie_selections)     
+            if bettype == 5: # trio
+                self.output_for_textbox(tri_synodds, tri_selections)     
+            if bettype == 6: # wide
+                self.output_for_textbox(wid_synodds, wid_selections)
 
-        
+            for output in self.outputs:
+                self.show_bets.insert(tk.END, output + "\n")
+
+        elif len(chk_bets[0]) == 1 and chk_bets[1] and not chk_bets[2]:
+            if bettype == 2: # exacta
+                bets = [str(chk_bets[0][0]) + "-" + str(bet) for bet in chk_bets[1]]
+            if bettype == 3: # quinella
+                pass
+                # bets = [str(chk_bets[0][0]) + "=" + str(bet) for bet in chk_bets[1]]
+            oddses = [self.odds_d[bet] for bet in bets]
+            syn_odds = self.calc_syntheic_odds(oddses)
+            selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
+            self.output_for_textbox(syn_odds, selections)
+
+    def output_for_textbox(self, synodds, selections):
+        self.number_of_bets.set(len(selections))
+        self.syntheic_odds.set(round(synodds, 1))
+        for bet, odds in selections:
+            buy = 3000 * synodds / odds
+            txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
+            self.outputs.append(txt) 
         for output in self.outputs:
             self.show_bets.insert(tk.END, output + "\n")
 
