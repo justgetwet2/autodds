@@ -1,6 +1,7 @@
 ua = {"User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.57"}
 from bs4 import BeautifulSoup
 from datetime import datetime
+import math
 import numpy as np
 import pandas as pd
 import re
@@ -87,7 +88,7 @@ def odds_dict(dt, place, raceNo):
     quinella_df = race[2][1][2]
     exacta_df = race[2][2][2]
     wide_df = race[2][3]
-    trio_df = race[2][4]
+    trio_dfs = race[2][4]
     trifs = race[3]
     
     odds_d = {}
@@ -108,6 +109,24 @@ def odds_dict(dt, place, raceNo):
                 if not np.isnan(value):
                     s = str(j+1) + "-" + str(i-1)
                     odds_d[s] = value
+
+    for i, t in enumerate(wide_df[2].itertuples()):
+        for j, v in enumerate(t[2::2]):
+            s = str(j+1) + "w" + str(j+i+2)
+            if not type(v) == float:
+                odds_d[s] = float(v.split()[0])
+
+    for df in trio_dfs:
+        for i, (k, s) in enumerate(df.iteritems()):
+            if not i%2:
+                head = k.replace("-", "=") 
+                tails = s.tolist()
+            if i%2:
+                oddses = s.tolist()
+                for tail, oddses in zip(tails, oddses):
+                    if not math.isnan(tail):
+                        bet = head + "=" + str(int(tail))
+                        odds_d[bet] = oddses
 
     for trif in trifs:
         for df in trif[2:]:

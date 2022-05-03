@@ -1,3 +1,5 @@
+from calendar import c
+import itertools
 import numpy as np
 import os
 import pickle
@@ -24,6 +26,9 @@ class Application(tk.Frame):
         self.odds_d = {}
 
         self.master.title(f"{self.dt} {self.place_jp}")
+        self.frame_main = tk.Frame(self, padx=10, pady=3)
+        self.frame_bets = tk.Frame(self, padx=10, pady=3)
+        self.frame_status = tk.Frame(self)
 
         # self.bg_color = self.master.cget("background")
         self.bg_color = "pink"
@@ -38,10 +43,22 @@ class Application(tk.Frame):
         self.create_frame_wheel()
         self.create_frame_box()
         self.create_frame_output()
+        self.frame_main.pack()
+        
+        self.create_frame_bets()
+        self.frame_bets.pack(fill=tk.X)
+
+        self.create_status_bar()
+        self.frame_status.pack(fill=tk.X)
+        
         self.pack()
 
+    def create_status_bar(self):
+        status_bar = tk.Label(self.frame_status, text="status bar", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(fill=tk.X)
+
     def create_frame_races(self):
-        frame_races = tk.Frame(self, pady=5, padx=5, bg=self.bg_color)
+        frame_races = tk.Frame(self.frame_main, bg=self.bg_color)
 
         r = [race[0][2] for race in self.races if race[0]]
         r += ["-" for _ in range(12-len(r))]
@@ -70,34 +87,34 @@ class Application(tk.Frame):
         btn_race11.pack(side=tk.LEFT, anchor=tk.NW, padx=2)
         btn_race12.pack(side=tk.LEFT, anchor=tk.NW, padx=2)
 
-        frame_races.grid(row=0, column=0, columnspan=3, padx=10)
+        frame_races.grid(row=0, column=0, columnspan=3)
 
     def create_frame_racetitle(self):
         self.racetitle = tk.StringVar()
         self.racetitle.set("1R " + self.races[0][0][3])
 
-        frame_racetitle = tk.Frame(self, padx=5, pady=7, bg=self.bg_color)
+        frame_racetitle = tk.Frame(self.frame_main, padx=10, pady=10, bg=self.bg_color)
         label_racetitle = tk.Label(frame_racetitle, textvariable=self.racetitle)
         label_racetitle.pack(side=tk.LEFT)        
 
-        frame_racetitle.grid(row=0, column=4, pady=5, sticky=tk.NW)
+        frame_racetitle.grid(row=0, column=4, sticky=tk.NW)
 
     def create_frame_buttons(self):
-        frame_buttons = tk.Frame(self, bg=self.bg_color)
+        frame_buttons = tk.Frame(self.frame_main, pady=10, bg=self.bg_color)
 
         frame_odds_update = tk.Frame(frame_buttons, bg=self.bg_color)
         btn_odds_update = tk.Button(frame_odds_update, text="update", command=lambda: self.update())
         btn_odds_update.pack()
         # frame_odds_update.grid(row=0, column=0, padx=10, pady=5)
-        frame_odds_update.pack(side="left", padx=10, pady=5)
+        frame_odds_update.pack(side="left", padx=5)
 
         frame_odds_calc = tk.Frame(frame_buttons, bg=self.bg_color)
         btn_odds_calc = tk.Button(frame_odds_calc, text="calc", command=lambda: self.calc())
         btn_odds_calc.pack()     
         # frame_odds_calc.grid(row=0, column=1, padx=10, pady=5)
-        frame_odds_calc.pack(side="left", pady=5)
+        frame_odds_calc.pack(side="left", padx=5)
 
-        frame_buttons.grid(row=0, column=4, padx=10, pady=5, sticky=tk.NE)
+        frame_buttons.grid(row=0, column=4, sticky=tk.NE)
 
     def create_frame_racer(self):
         self.entry_df = self.races[0][1]
@@ -125,7 +142,7 @@ class Application(tk.Frame):
         self.racer7.set(self.racers[6])
         self.racer8.set(self.racers[7])
 
-        frame_racers = tk.Frame(self, padx=5, pady=5, bg=self.bg_color)
+        frame_racers = tk.Frame(self.frame_main, padx=5, pady=5, bg=self.bg_color)
         label_racer1 = tk.Label(frame_racers, textvariable=self.racer1)
         label_racer2 = tk.Label(frame_racers, textvariable=self.racer2)
         label_racer3 = tk.Label(frame_racers, textvariable=self.racer3)
@@ -143,7 +160,7 @@ class Application(tk.Frame):
         label_racer7.pack(anchor=tk.W)
         label_racer8.pack(anchor=tk.W)
         
-        frame_racers.grid(row=1, column=0, rowspan=3, padx=10, sticky=tk.EW)
+        frame_racers.grid(row=1, column=0, rowspan=3, sticky=tk.EW)
 
     def create_frame_odds(self):        
         self.odds1 = tk.StringVar()
@@ -163,7 +180,7 @@ class Application(tk.Frame):
         self.odds7.set("")
         self.odds8.set("")
 
-        frame_odds = tk.Frame(self, padx=5, pady=5, bg=self.bg_color)
+        frame_odds = tk.Frame(self.frame_main, padx=5, pady=5, bg=self.bg_color)
         label_odds1 = tk.Label(frame_odds, textvariable=self.odds1)
         label_odds2 = tk.Label(frame_odds, textvariable=self.odds2)
         label_odds3 = tk.Label(frame_odds, textvariable=self.odds3)
@@ -184,24 +201,26 @@ class Application(tk.Frame):
         frame_odds.grid(row=1, column=1, rowspan=3, sticky=tk.NW)
 
     def create_frame_bettype(self):
-        frame_bettype = tk.LabelFrame(self, text="bet type")
+        frame_bettype = tk.LabelFrame(self.frame_main, text="bet type")
         self.radio_var = tk.IntVar(value=0)
-        rbn_win = tk.Radiobutton(frame_bettype, value=0, variable=self.radio_var, text="win")
-        rbn_exacta = tk.Radiobutton(frame_bettype, value=1, variable=self.radio_var, text="exacta")
-        rbn_quinella = tk.Radiobutton(frame_bettype, value=2, variable=self.radio_var, text="quinella")
-        rbn_tierce = tk.Radiobutton(frame_bettype, value=3, variable=self.radio_var, text="tierce")
-        rbn_trio = tk.Radiobutton(frame_bettype, value=4, variable=self.radio_var, text="trio")
-        rbn_wide = tk.Radiobutton(frame_bettype, value=5, variable=self.radio_var, text="wide")
+        rbn_all = tk.Radiobutton(frame_bettype, value=0, variable=self.radio_var, text="all")
+        rbn_win = tk.Radiobutton(frame_bettype, value=1, variable=self.radio_var, text="win")
+        rbn_exacta = tk.Radiobutton(frame_bettype, value=2, variable=self.radio_var, text="exacta")
+        rbn_quinella = tk.Radiobutton(frame_bettype, value=3, variable=self.radio_var, text="quinella")
+        rbn_tierce = tk.Radiobutton(frame_bettype, value=4, variable=self.radio_var, text="tierce")
+        rbn_trio = tk.Radiobutton(frame_bettype, value=5, variable=self.radio_var, text="trio")
+        rbn_wide = tk.Radiobutton(frame_bettype, value=6, variable=self.radio_var, text="wide")
+        rbn_all.pack(side="left")
         rbn_win.pack(side="left")
         rbn_exacta.pack(side="left")
         rbn_quinella.pack(side="left")
         rbn_tierce.pack(side="left")
         rbn_trio.pack(side="left")
         rbn_wide.pack(side="left")
-        frame_bettype.grid(row=1, column=4, columnspan=3, sticky=tk.W)
+        frame_bettype.grid(row=1, column=4, columnspan=3, padx=5, sticky=tk.NW)
 
     def create_frame_wheel(self):
-        frame_wheel = tk.Frame(self, bg=self.bg_color)
+        frame_wheel = tk.Frame(self.frame_main, padx=5, bg=self.bg_color)
 
         frame_wheel1st = tk.LabelFrame(frame_wheel, text="wheel 1st")
         self.chk_w11 = tk.BooleanVar(value=False)
@@ -291,7 +310,7 @@ class Application(tk.Frame):
         frame_wheel.grid(row=2, column=4, sticky=tk.NS)
 
     def create_frame_box(self):
-        frame_box_etc = tk.Frame(self, bg=self.bg_color)
+        frame_box_etc = tk.Frame(self.frame_main, padx=5, bg=self.bg_color)
 
         frame_box = tk.LabelFrame(frame_box_etc, text="box")
         self.chk_b1 = tk.BooleanVar(value=False)
@@ -333,7 +352,7 @@ class Application(tk.Frame):
         frame_box_etc.grid(row=3, column=4, sticky=tk.NS+tk.W)
 
     def create_frame_output(self):
-        frame_output = tk.Frame(self, bg=self.bg_color)
+        frame_output = tk.Frame(self.frame_main, padx=3, pady=10, bg=self.bg_color)
         
         self.number_of_bets = tk.StringVar(value="")
         self.syntheic_odds = tk.StringVar(value="")
@@ -344,13 +363,18 @@ class Application(tk.Frame):
         label_syntheic_odds = tk.Label(frame_output, textvariable=self.syntheic_odds)
         
         tag_number_of_bets.pack(side="left")
-        label_number_of_bets.pack(side="left")
+        label_number_of_bets.pack(side="left", padx=10)
         tag_syntheic_odds.pack(side="left", padx=10)
         label_syntheic_odds.pack(side="left")
 
-        frame_output.grid(row=4, column=0, padx=10, pady=7, sticky=tk.NW)
+        frame_output.grid(row=4, column=0, sticky=tk.NW)
+
+    def create_frame_bets(self):
+        self.show_bets = tk.Text(self.frame_bets, width=60, height=20)
+        self.show_bets.grid(column=0, row=0, pady=10, sticky=tk.N+tk.S+tk.E+tk.W)
 
     def select_race(self, race):
+        self.check_clear()
         racetitle_text = "no race"
         if race.isdigit():
             racetitle_text = race + "R " + self.races[int(race)-1][0][3]    
@@ -411,8 +435,9 @@ class Application(tk.Frame):
         self.chk_b5.set(0); self.chk_b6.set(0); self.chk_b7.set(0); self.chk_b8.set(0)
         self.chk_trn.set(0)
         self.number_of_bets.set(""); self.syntheic_odds.set("")
+        self.show_bets.delete("1.0", tk.END)
 
-    def bets(self):
+    def checked_bets(self):
         w1 = [self.chk_w11.get(), self.chk_w12.get(), self.chk_w13.get(), self.chk_w14.get()]
         w1 += [self.chk_w15.get(), self.chk_w16.get(), self.chk_w17.get(), self.chk_w18.get()]
         idx1 = [i+1 for i, w in enumerate(w1) if w]
@@ -434,21 +459,94 @@ class Application(tk.Frame):
     def calc_syntheic_odds(self, l_odds):
         return 1/np.reciprocal(l_odds).sum()
 
+    def calc_wins(self, bets):
+        sellctions = [str(bet) for bet in bets]
+        oddses = [self.odds_d[s] for s in sellctions]
+        syn_odds = self.calc_syntheic_odds(oddses)
+
+        return syn_odds, sellctions
+
+    def calc_exacta_box(self, bets):
+        selections, oddses = [], []
+        for pair in itertools.permutations(bets, 2):
+            bet = str(pair[0]) + "-" + str(pair[1])
+            odds = self.odds_d[bet]
+            oddses.append(odds)
+            selections.append((bet, odds))
+        syn_odds = self.calc_syntheic_odds(oddses)
+
+        return syn_odds, selections
+
+    def calc_quinella_box(self, bets):
+        selections, oddses = [], []
+        for pair in itertools.combinations(bets, 2):
+            bet = str(pair[0]) + "-" + str(pair[1])
+            odds = self.odds_d[bet]
+            oddses.append(odds)
+            selections.append((bet, odds))
+        syn_odds = self.calc_syntheic_odds(oddses)
+
+        return syn_odds, selections
+
     def calc(self):
-        bets = self.bets()
+        chk_bets = self.checked_bets()
         bettype = self.radio_var.get()
-        if bettype == 0: # win
-            if bets[0]:
-                self.number_of_bets.set(len(bets[0]))
-                l_odds = [self.odds_d[str(bet)] for bet in bets[0]]
-                s_odds = self.calc_syntheic_odds(l_odds)
-                self.syntheic_odds.set(round(s_odds, 1))
-                for bet in bets[0]:
+        self.show_bets.delete("1.0", tk.END)
+        self.outputs = []
+        if bettype == 0: # all
+            bets = chk_bets[3]
+            if bets:
+                w_synodds, w_selections = self.calc_wins(bets)
+                q_synodds, q_selections = self.calc_quinella_box(bets)
+                e_synodds, e_selections = self.calc_exacta_box(bets)
+            w_txt = "win :    " + str(len(w_selections)).rjust(3) + str(round(w_synodds, 1)).rjust(6)
+            q_txt = "quinella:" + str(len(q_selections)).rjust(3) + str(round(q_synodds,1)).rjust(6)
+            e_txt = "exacta : " + str(len(e_selections)).rjust(3) + str(round(e_synodds,1)).rjust(6)
+            self.outputs = [w_txt, q_txt, e_txt]
+
+        if bettype == 1: # win
+            bets = chk_bets[0]
+            if bets:
+                synodds, selections = self.calc_wins(bets)
+                self.number_of_bets.set(len(bets))
+                self.syntheic_odds.set(round(synodds, 1))
+                for bet in selections:
                     odds  = self.odds_d[str(bet)]
-                    buy = 3000 * s_odds / odds
-                    print(bet, odds, round(buy))
+                    buy = 3000 * synodds / odds
+                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
+                    self.outputs.append(txt)
             else:
                 print("woo")
+        if bettype == 2: # exacta
+            bets = chk_bets[3]
+            if bets:
+                synodds, selections = self.calc_exacta_box(bets)
+                self.number_of_bets.set(len(selections))
+                self.syntheic_odds.set(round(synodds, 1))
+                for bet, odds in selections:
+                    # odds  = self.odds_d[str(bet)]
+                    buy = 3000 * synodds / odds
+                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
+                    self.outputs.append(txt)     
+            else:
+                print("flitter!")
+        if bettype == 3: # quinella
+            bets = chk_bets[3]
+            if bets:
+                synodds, selections = self.calc_quinella_box(bets)
+                self.number_of_bets.set(len(selections))
+                self.syntheic_odds.set(round(synodds, 1))
+                for bet, odds in selections:
+                    # odds  = self.odds_d[str(bet)]
+                    buy = 3000 * synodds / odds
+                    txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
+                    self.outputs.append(txt)       
+            else:
+                print("flitter!")
+
+        
+        for output in self.outputs:
+            self.show_bets.insert(tk.END, output + "\n")
 
     def run(self):
         self.mainloop()
