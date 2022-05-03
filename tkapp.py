@@ -532,21 +532,30 @@ class Application(tk.Frame):
             if bettype == 6: # wide
                 self.output_for_textbox(wid_synodds, wid_selections)
 
-            for output in self.outputs:
-                self.show_bets.insert(tk.END, output + "\n")
+            # for output in self.outputs:
+            #     self.show_bets.insert(tk.END, output + "\n")
 
         elif len(chk_bets[0]) == 1 and chk_bets[1] and not chk_bets[2]:
             if bettype == 2: # exacta
                 bets = [str(chk_bets[0][0]) + "-" + str(bet) for bet in chk_bets[1]]
+                oddses = [self.odds_d[bet] for bet in bets]
             if bettype == 3: # quinella
-                pass
-                # bets = [str(chk_bets[0][0]) + "=" + str(bet) for bet in chk_bets[1]]
-            oddses = [self.odds_d[bet] for bet in bets]
+                bets = [str(chk_bets[0][0]) + "=" + str(bet) for bet in chk_bets[1]]
+                oddses = []
+                for bet in bets:
+                    try:
+                        odds = self.odds_d[bet]
+                    except:
+                        bet = bet[2] + "=" + bet[0]
+                        odds = self.odds_d[bet]
+                    oddses.append(odds)
+
             syn_odds = self.calc_syntheic_odds(oddses)
             selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
             self.output_for_textbox(syn_odds, selections)
 
     def output_for_textbox(self, synodds, selections):
+        self.show_bets.delete("1.0", tk.END)
         self.number_of_bets.set(len(selections))
         self.syntheic_odds.set(round(synodds, 1))
         for bet, odds in selections:
