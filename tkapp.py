@@ -356,18 +356,23 @@ class Application(tk.Frame):
         
         self.number_of_bets = tk.StringVar(value="")
         self.syntheic_odds = tk.StringVar(value="")
+        self.expected_prob = tk.StringVar(value="")
 
         tag_number_of_bets = tk.Label(frame_output, text="Number of Bets:")
         label_number_of_bets = tk.Label(frame_output, textvariable=self.number_of_bets)
         tag_syntheic_odds = tk.Label(frame_output, text="Syntheic Odds:")
         label_syntheic_odds = tk.Label(frame_output, textvariable=self.syntheic_odds)
+        tag_expected_prob = tk.Label(frame_output, text="Expected Prob:")
+        lable_expected_prob = tk.Label(frame_output, textvariable=self.expected_prob)
         
         tag_number_of_bets.pack(side="left")
         label_number_of_bets.pack(side="left", padx=10)
         tag_syntheic_odds.pack(side="left", padx=10)
         label_syntheic_odds.pack(side="left")
+        tag_expected_prob.pack(side="left", padx=10)
+        lable_expected_prob.pack(side="left")
 
-        frame_output.grid(row=4, column=0, sticky=tk.NW)
+        frame_output.grid(row=4, column=0, columnspan=5, sticky=tk.NW)
 
     def create_frame_bets(self):
         self.show_bets = tk.Text(self.frame_bets, width=60, height=20)
@@ -558,6 +563,8 @@ class Application(tk.Frame):
         self.show_bets.delete("1.0", tk.END)
         self.number_of_bets.set(len(selections))
         self.syntheic_odds.set(round(synodds, 1))
+        p = 1.5 * 0.75 / synodds
+        self.expected_prob.set(round(p, 2))
         for bet, odds in selections:
             buy = 3000 * synodds / odds
             txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
