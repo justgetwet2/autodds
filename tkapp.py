@@ -9,9 +9,14 @@ from scrape_odds import odds_dict
 
 place_d = {"kawaguchi": "川口", "isesaki": "伊勢崎", "hamamatsu": "浜松", "iizuka": "飯塚", "sanyo": "山陽"}
 
-class Application(tk.Frame):
+class Test(tk.Frame):
     def __init__(self, master=None):
-        super().__init__(master,  width=800, height=400)
+        super().__init__(master)
+        self.test = "geko"
+
+class Application(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master) #,  width=800, height=400)
 
         args = sys.argv 
         filepath = args[1]
@@ -45,6 +50,7 @@ class Application(tk.Frame):
         self.create_frame_output()
         self.frame_main.pack()
         
+        self.create_frame_textbox()
         self.create_frame_bets()
         self.frame_bets.pack(fill=tk.X)
 
@@ -52,6 +58,8 @@ class Application(tk.Frame):
         self.frame_status.pack(fill=tk.X)
         
         self.pack()
+
+    ''' create part '''
 
     def create_status_bar(self):
         status_bar = tk.Label(self.frame_status, text="status bar", bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -87,17 +95,7 @@ class Application(tk.Frame):
         btn_race11.pack(side=tk.LEFT, anchor=tk.NW, padx=2)
         btn_race12.pack(side=tk.LEFT, anchor=tk.NW, padx=2)
 
-        frame_races.grid(row=0, column=0, columnspan=3)
-
-    # def create_frame_racetitle(self):
-    #     self.racetitle = tk.StringVar()
-    #     self.racetitle.set("1R " + self.races[0][0][3])
-
-    #     frame_racetitle = tk.Frame(self.frame_main, padx=10, pady=10, bg=self.bg_color)
-    #     label_racetitle = tk.Label(frame_racetitle, textvariable=self.racetitle)
-    #     label_racetitle.pack(side=tk.LEFT)        
-
-    #     frame_racetitle.grid(row=0, column=4, sticky=tk.NW)
+        frame_races.grid(row=0, column=0, columnspan=3, sticky=tk.W)
 
     def create_frame_buttons(self):
         frame_buttons = tk.Frame(self.frame_main, pady=10, bg=self.bg_color)
@@ -114,7 +112,7 @@ class Application(tk.Frame):
         # frame_odds_calc.grid(row=0, column=1, padx=10, pady=5)
         frame_odds_calc.pack(side="left", padx=5)
 
-        frame_buttons.grid(row=0, column=4, sticky=tk.NE)
+        frame_buttons.grid(row=0, column=2, sticky=tk.NE)
 
     def create_frame_racer(self):
         self.entry_df = self.races[0][1]
@@ -247,7 +245,6 @@ class Application(tk.Frame):
         self.chk_w36 = tk.BooleanVar(value=False)
         self.chk_w37 = tk.BooleanVar(value=False)
         self.chk_w38 = tk.BooleanVar(value=False)
-
         chk11 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w11, text="1")
         chk12 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w12, text="2")
         chk13 = tk.Checkbutton(frame_wheel1st, variable=self.chk_w13, text="3")
@@ -264,7 +261,6 @@ class Application(tk.Frame):
         chk16.grid(row=1, column=1)
         chk17.grid(row=1, column=2)
         chk18.grid(row=1, column=3)
-
         frame_wheel1st.grid(row=0, column=0, sticky=tk.NW)
 
         frame_wheel2nd = tk.LabelFrame(frame_wheel, text="2nd")
@@ -284,7 +280,6 @@ class Application(tk.Frame):
         chk26.grid(row=1, column=1)
         chk27.grid(row=1, column=2)
         chk28.grid(row=1, column=3)
-
         frame_wheel2nd.grid(row=0, column=1, padx=10, sticky=tk.NW)
 
         frame_wheel3rd = tk.LabelFrame(frame_wheel, text="3rd")
@@ -304,7 +299,6 @@ class Application(tk.Frame):
         chk36.grid(row=1, column=1)
         chk37.grid(row=1, column=2)
         chk38.grid(row=1, column=3)
-
         frame_wheel3rd.grid(row=0, column=3, sticky=tk.NW)
 
         frame_wheel.grid(row=2, column=2, sticky=tk.NS)
@@ -337,7 +331,6 @@ class Application(tk.Frame):
         chk6.grid(row=0, column=5)
         chk7.grid(row=0, column=6)
         chk8.grid(row=0, column=7)
-
         frame_box.pack(side="left")
 
         frame_options = tk.LabelFrame(frame_box_etc, text="option")
@@ -374,14 +367,32 @@ class Application(tk.Frame):
 
         frame_output.grid(row=4, column=0, columnspan=5, sticky=tk.NW)
 
-    def clear_output(self):
-        self.number_of_bets.set("")
-        self.syntheic_odds.set("")
-        self.expected_prob.set("")
+    def create_frame_textbox(self):
+        self.show_bets = tk.Text(self.frame_bets, width=60, height=20)
+        scrollbar = tk.Scrollbar(self.frame_bets, orient=tk.VERTICAL, command=self.show_bets.yview)
+        self.show_bets["yscrollcommand"] = scrollbar.set
+        
+        self.show_bets.grid(row=0, column=0, pady=10, sticky=tk.N+tk.S+tk.E+tk.W)
+        scrollbar.grid(row=0, column=1, sticky=tk.N+tk.S)
 
     def create_frame_bets(self):
-        self.show_bets = tk.Text(self.frame_bets, width=60, height=20)
-        self.show_bets.grid(column=0, row=0, pady=10, sticky=tk.N+tk.S+tk.E+tk.W)
+        frame_bet = tk.LabelFrame(self.frame_bets, text="bet")
+        self.bet_var = tk.IntVar(value=1000)
+        rbn_1k = tk.Radiobutton(frame_bet, value=1000, variable=self.bet_var, text=" 1000")
+        rbn_3k = tk.Radiobutton(frame_bet, value=3000, variable=self.bet_var, text=" 3000")
+        rbn_5k = tk.Radiobutton(frame_bet, value=5000, variable=self.bet_var, text=" 5000")
+        rbn_10k = tk.Radiobutton(frame_bet, value=10000, variable=self.bet_var, text="10000")
+        rbn_20k = tk.Radiobutton(frame_bet, value=20000, variable=self.bet_var, text="20000")
+        rbn_30k = tk.Radiobutton(frame_bet, value=30000, variable=self.bet_var, text="30000")
+        rbn_1k.pack()
+        rbn_3k.pack()
+        rbn_5k.pack()
+        rbn_10k.pack()
+        rbn_20k.pack()
+        rbn_30k.pack()
+        frame_bet.grid(row=0, column=2, padx=10, sticky=tk.NW)
+
+    ''' process part '''
 
     def select_race(self, race):
         self.check_clear()
@@ -435,6 +446,11 @@ class Application(tk.Frame):
         self.odds7.set(win_odds[6])
         self.odds8.set(win_odds[7])
 
+    def clear_output(self):
+        self.number_of_bets.set("")
+        self.syntheic_odds.set("")
+        self.expected_prob.set("")
+
     def check_clear(self):
         self.chk_w11.set(0); self.chk_w12.set(0); self.chk_w13.set(0); self.chk_w14.set(0)
         self.chk_w15.set(0); self.chk_w16.set(0); self.chk_w17.set(0); self.chk_w18.set(0)
@@ -445,7 +461,6 @@ class Application(tk.Frame):
         self.chk_b1.set(0); self.chk_b2.set(0); self.chk_b3.set(0); self.chk_b4.set(0)
         self.chk_b5.set(0); self.chk_b6.set(0); self.chk_b7.set(0); self.chk_b8.set(0)
         self.chk_trn.set(0)
-        # self.number_of_bets.set(""); self.syntheic_odds.set("")
         self.clear_output()
         self.show_bets.delete("1.0", tk.END)
 
@@ -544,10 +559,6 @@ class Application(tk.Frame):
                 self.output_for_textbox(tri_synodds, tri_selections)     
             if bettype == 6: # wide
                 self.output_for_textbox(wid_synodds, wid_selections)
-
-            # for output in self.outputs:
-            #     self.show_bets.insert(tk.END, output + "\n")
-
         elif len(chk_bets[0]) == 1 and chk_bets[1] and not chk_bets[2]:
             if bettype == 2: # exacta
                 bets = [str(chk_bets[0][0]) + "-" + str(bet) for bet in chk_bets[1]]
@@ -573,10 +584,20 @@ class Application(tk.Frame):
         self.syntheic_odds.set(round(synodds, 1))
         p = 1.5 * 0.75 / synodds
         self.expected_prob.set(round(p, 2))
+        
+        amount_of_coins = self.bet_var.get()
+        amount = 0
         for bet, odds in selections:
-            buy = 3000 * synodds / odds
-            txt = " " + str(bet) + str(odds).rjust(7) + str(round(buy)).rjust(7)
+            coins = amount_of_coins * synodds / odds
+            each_coins = int(round(coins, -2))
+            if not each_coins:
+                each_coins = 100
+            each_payout = round(odds * each_coins)
+            amount += each_coins
+            txt = " " + str(bet) + str(odds).rjust(7) + str(each_coins).rjust(7) + str(each_payout).rjust(7)
             self.outputs.append(txt) 
+        txt = " amount: " + str(amount).rjust(6)
+        self.outputs.append(txt)
         for output in self.outputs:
             self.show_bets.insert(tk.END, output + "\n")
 
