@@ -35,7 +35,7 @@ class Application(tk.Frame):
 
         self.grid_propagate(False) # 子フレームのgridに対し親フレームサイズ固定
         self.create_frame_races()
-        self.create_frame_racetitle()
+        # self.create_frame_racetitle()
         self.create_frame_buttons()
         self.create_frame_racer()
         self.create_frame_odds()
@@ -89,15 +89,15 @@ class Application(tk.Frame):
 
         frame_races.grid(row=0, column=0, columnspan=3)
 
-    def create_frame_racetitle(self):
-        self.racetitle = tk.StringVar()
-        self.racetitle.set("1R " + self.races[0][0][3])
+    # def create_frame_racetitle(self):
+    #     self.racetitle = tk.StringVar()
+    #     self.racetitle.set("1R " + self.races[0][0][3])
 
-        frame_racetitle = tk.Frame(self.frame_main, padx=10, pady=10, bg=self.bg_color)
-        label_racetitle = tk.Label(frame_racetitle, textvariable=self.racetitle)
-        label_racetitle.pack(side=tk.LEFT)        
+    #     frame_racetitle = tk.Frame(self.frame_main, padx=10, pady=10, bg=self.bg_color)
+    #     label_racetitle = tk.Label(frame_racetitle, textvariable=self.racetitle)
+    #     label_racetitle.pack(side=tk.LEFT)        
 
-        frame_racetitle.grid(row=0, column=4, sticky=tk.NW)
+    #     frame_racetitle.grid(row=0, column=4, sticky=tk.NW)
 
     def create_frame_buttons(self):
         frame_buttons = tk.Frame(self.frame_main, pady=10, bg=self.bg_color)
@@ -217,7 +217,7 @@ class Application(tk.Frame):
         rbn_tierce.pack(side="left")
         rbn_trio.pack(side="left")
         rbn_wide.pack(side="left")
-        frame_bettype.grid(row=1, column=4, columnspan=3, padx=5, sticky=tk.NW)
+        frame_bettype.grid(row=1, column=2, columnspan=3, padx=5, sticky=tk.NW)
 
     def create_frame_wheel(self):
         frame_wheel = tk.Frame(self.frame_main, padx=5, bg=self.bg_color)
@@ -307,7 +307,7 @@ class Application(tk.Frame):
 
         frame_wheel3rd.grid(row=0, column=3, sticky=tk.NW)
 
-        frame_wheel.grid(row=2, column=4, sticky=tk.NS)
+        frame_wheel.grid(row=2, column=2, sticky=tk.NS)
 
     def create_frame_box(self):
         frame_box_etc = tk.Frame(self.frame_main, padx=5, bg=self.bg_color)
@@ -349,7 +349,7 @@ class Application(tk.Frame):
         btn_clear = tk.Button(frame_box_etc, text="clear", command=lambda: self.check_clear())
         btn_clear.pack(side="left", pady=6, anchor=tk.S)
 
-        frame_box_etc.grid(row=3, column=4, sticky=tk.NS+tk.W)
+        frame_box_etc.grid(row=3, column=2, sticky=tk.NS+tk.W)
 
     def create_frame_output(self):
         frame_output = tk.Frame(self.frame_main, padx=3, pady=10, bg=self.bg_color)
@@ -374,6 +374,11 @@ class Application(tk.Frame):
 
         frame_output.grid(row=4, column=0, columnspan=5, sticky=tk.NW)
 
+    def clear_output(self):
+        self.number_of_bets.set("")
+        self.syntheic_odds.set("")
+        self.expected_prob.set("")
+
     def create_frame_bets(self):
         self.show_bets = tk.Text(self.frame_bets, width=60, height=20)
         self.show_bets.grid(column=0, row=0, pady=10, sticky=tk.N+tk.S+tk.E+tk.W)
@@ -394,7 +399,8 @@ class Application(tk.Frame):
         else:
             self.racers = ["" for _ in range(8)]
 
-        self.racetitle.set(racetitle_text)
+        # self.racetitle.set(racetitle_text)
+        self.master.title(f"{self.dt} {self.place_jp} " + racetitle_text)
         self.racer1.set(self.racers[0])
         self.racer2.set(self.racers[1])
         self.racer3.set(self.racers[2])
@@ -439,7 +445,8 @@ class Application(tk.Frame):
         self.chk_b1.set(0); self.chk_b2.set(0); self.chk_b3.set(0); self.chk_b4.set(0)
         self.chk_b5.set(0); self.chk_b6.set(0); self.chk_b7.set(0); self.chk_b8.set(0)
         self.chk_trn.set(0)
-        self.number_of_bets.set(""); self.syntheic_odds.set("")
+        # self.number_of_bets.set(""); self.syntheic_odds.set("")
+        self.clear_output()
         self.show_bets.delete("1.0", tk.END)
 
     def checked_bets(self):
@@ -503,6 +510,7 @@ class Application(tk.Frame):
     def calc(self):
         chk_bets = self.checked_bets()
         bettype = self.radio_var.get()
+        self.clear_output()
         self.show_bets.delete("1.0", tk.END)
         self.outputs = []
 
