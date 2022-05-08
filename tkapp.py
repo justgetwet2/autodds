@@ -112,7 +112,7 @@ class Application(tk.Frame):
         # frame_odds_calc.grid(row=0, column=1, padx=10, pady=5)
         frame_odds_calc.pack(side="left", padx=5)
 
-        frame_buttons.grid(row=0, column=2, sticky=tk.NE)
+        frame_buttons.grid(row=0, column=3, sticky=tk.NE)
 
     def create_frame_racer(self):
         self.entry_df = self.races[0][1]
