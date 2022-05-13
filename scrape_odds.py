@@ -92,9 +92,11 @@ def odds_dict(dt, place, raceNo):
     trifs = race[3]
     
     odds_d = {}
-
     for t in winplace_df.itertuples():
         odds_d[str(t.車番)] = t.単勝オッズ
+        p1, p2 = t.複勝オッズ.split("-")
+        odds_d["(" + str(t.車番)] = float(p1)
+        odds_d[str(t.車番) + ")"] = float(p2)
 
     for i, t in enumerate(quinella_df.itertuples()):
         for j, v in enumerate(t[2::2]):
