@@ -45,7 +45,7 @@ class Application(tk.Frame):
         self.create_frame_oddses()
         self.create_frame_bettype()
         self.create_frame_wheel()
-        self.create_frame_box()
+        self.create_frame_combination()
         self.create_frame_expected_value()
         self.frame_upper.pack()
         
@@ -108,7 +108,7 @@ class Application(tk.Frame):
             label_racers.append(tk.Label(frame_racers, textvariable=self.var_racers[i]))
             label_racers[i].pack(anchor=tk.W)
         
-        frame_racers.grid(row=1, column=0, rowspan=4, sticky=tk.EW)
+        frame_racers.grid(row=1, column=0, rowspan=4, sticky=tk.NW)
 
     def create_frame_oddses(self):
 
@@ -150,10 +150,11 @@ class Application(tk.Frame):
         frame_place1_oddses.pack(side="left", padx=5)
         frame_place_bars.pack(side="left")
         frame_place2_oddses.pack(side="left", padx=5)
-        frame_oddses.grid(row=1, column=1, rowspan=4, sticky=tk.EW)
+
+        frame_oddses.grid(row=1, column=1, rowspan=4, sticky=tk.NW)
 
     def create_frame_bettype(self):
-        frame_bettype = tk.LabelFrame(self.frame_upper, text="bet type")
+        frame_bettype = tk.LabelFrame(self.frame_upper, pady=5, text="bet type")
         self.var_bettype = tk.IntVar(value=0)
         bettypes = "all", "win", "exacta", "quinella", "trifecta", "trio", "wide"
         radiobuttons = []
@@ -162,10 +163,11 @@ class Application(tk.Frame):
             radiobuttons.append(rbn)
             radiobuttons[i].pack(side=tk.LEFT)
 
-        frame_bettype.grid(row=1, column=2, columnspan=3, padx=5, sticky=tk.NW)
+        frame_bettype.grid(row=1, column=2, columnspan=3, sticky=tk.NW)
 
     def create_frame_wheel(self):
-        frame_wheel = tk.Frame(self.frame_upper, padx=5, bg=self.bg_color)
+
+        frame_wheel = tk.LabelFrame(self.frame_upper, padx=10, pady=5, text="Wheel", bg=self.bg_color)
 
         frame_wheel1st = tk.LabelFrame(frame_wheel, text="1st")
         self.var_wheel1st = []
@@ -203,11 +205,12 @@ class Application(tk.Frame):
             n += 1/4
         frame_wheel3rd.pack(side=tk.LEFT)
 
-        frame_wheel.grid(row=2, column=2, columnspan=3, sticky=tk.NS)
+        frame_wheel.grid(row=2, column=2, columnspan=3, sticky=tk.NW)
 
-    def create_frame_box(self):
+    def create_frame_combination(self):
 
-        frame_box = tk.LabelFrame(self.frame_upper, padx=10, pady=10, text="Box", bg=self.bg_color)
+        frame_combination = tk.Frame(self.frame_upper, pady=10, bg=self.bg_color)
+        frame_box = tk.LabelFrame(frame_combination, padx=5, pady=5, text="Box")
         self.var_box = []
         chk_box = []
         n = 0.
@@ -217,15 +220,14 @@ class Application(tk.Frame):
             chk_box.append(chk)
             chk_box[i].grid(row=math.floor(n), column=i%8)
             n += 1/8
+        frame_box.pack(side=tk.LEFT)
 
-        frame_box.grid(row=3, column=2, columnspan=3, sticky=tk.NW)
-
-        frame_option = tk.LabelFrame(self.frame_upper, text="option")
+        frame_option = tk.LabelFrame(frame_combination, padx=5, pady=5, text="option")
         self.chk_trn = tk.BooleanVar(value=False)
         chk_turnup = tk.Checkbutton(frame_option, variable=self.chk_trn, text="1st<=>2nd")
         chk_turnup.pack()
-        frame_option.grid(row=3, column=3)
-
+        frame_option.pack(side=tk.LEFT, padx=10)
+        frame_combination.grid(row=3, column=2, columnspan=3, sticky=tk.NW)
 
     def create_frame_expected_value(self):
         frame_expected_value = tk.Frame(self.frame_upper, padx=3, pady=10, bg=self.bg_color)
@@ -274,7 +276,7 @@ class Application(tk.Frame):
 
     def callback(self, race_number):
         def func():
-            self.clear_all()
+            self.clear_checkbox()
             racetitle_text = "no race"
             if race_number.isdigit():
                 racetitle_text = race_number + "R " + self.races[int(race_number)-1][0][3]    
@@ -303,12 +305,11 @@ class Application(tk.Frame):
         self.odds_d = odds_dict(self.dt, self.place_jp, self.race)
 
         win_oddses = [self.odds_d[racer[0]] for racer in self.racers if racer]
-        win_oddses += [" " for _ in range(8-len(self.racers))]
+        win_oddses += [" " for _ in range(8-len(win_oddses))]
         p1_oddses = [self.odds_d["(" + racer[0]] for racer in self.racers if racer]
-        p1_oddses += [" " for _ in range(8-len(self.racers))]      
+        p1_oddses += [" " for _ in range(8-len(p1_oddses))]      
         p2_oddses = [self.odds_d[racer[0] + ")"] for racer in self.racers if racer]
-        p2_oddses += [" " for _ in range(8-len(self.racers))]
-        
+        p2_oddses += [" " for _ in range(8-len(p2_oddses))]
         for i in range(8):
             self.var_win_oddses[i].set(win_oddses[i])
             self.var_place1_oddses[i].set(p1_oddses[i]) 
@@ -331,7 +332,7 @@ class Application(tk.Frame):
         self.syntheic_odds.set("")
         self.expected_prob.set("")
 
-    def clear_all(self):
+    def clear_checkbox(self):
         self.clear_output()
         for w1, w2, w3, box in zip(self.var_wheel1st, self.var_wheel2nd, self.var_wheel3rd, self.var_box):
             w1.set(0)
@@ -419,6 +420,7 @@ class Application(tk.Frame):
                 wid_txt = "wide :   " + str(len(wid_selections)).rjust(3) + str(round(wid_synodds,1)).rjust(6)
                 self.outputs = [win_txt, exa_txt, qin_txt, trf_txt, tro_txt, wid_txt]
                 self.textbox.delete("1.0", tk.END)
+                self.textbox.insert(tk.END, "*** Combinations ***" + "\n")
                 for output in self.outputs:
                     self.textbox.insert(tk.END, output + "\n")
 
@@ -434,6 +436,7 @@ class Application(tk.Frame):
                 synodds, selections = tro_synodds, tro_selections     
             if bettype == 6: # wide
                 synodds, selections = wid_synodds, wid_selections
+        # Wheel
         elif len(chk_bets[0]) == 1 and chk_bets[1] and not chk_bets[2]:
             if bettype == 2: # exacta
                 bets = [str(chk_bets[0][0]) + "-" + str(bet) for bet in chk_bets[1]]
@@ -448,6 +451,11 @@ class Application(tk.Frame):
                         bet = bet[2] + "=" + bet[0]
                         odds = self.odds_d[bet]
                     oddses.append(odds)
+        elif len(chk_bets[0]) == 1 and len(chk_bets[1]) == 1 and chk_bets[2]:
+            if bettype == 4: # trifecta
+                head = str(chk_bets[0][0]) + "-" + str(chk_bets[1][0]) + "-"
+                bets = [head + str(bet) for bet in chk_bets[2]]
+                oddses = [self.odds_d[bet] for bet in bets]
 
             synodds = self.calc_syntheic_odds(oddses)
             selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
