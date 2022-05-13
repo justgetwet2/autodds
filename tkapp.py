@@ -26,7 +26,8 @@ class Application(tk.Frame):
         self.odds_d = {}
         self.odds  = 0.
         self.selections = []
-
+        self.status = tk.StringVar()
+        self.status.set("status")
 
         self.master.title(f"{self.dt} {self.place_jp}")
         self.frame_upper = tk.Frame(self, padx=10, pady=3)
@@ -61,7 +62,7 @@ class Application(tk.Frame):
     ''' create part '''
 
     def create_status_bar(self):
-        status_bar = tk.Label(self.frame_status, text="status", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar = tk.Label(self.frame_status, textvariable=self.status, bd=1, relief=tk.SUNKEN, anchor=tk.W)
         status_bar.pack(fill=tk.X)
 
     def create_frame_races(self):
@@ -209,24 +210,18 @@ class Application(tk.Frame):
 
     def create_frame_combination(self):
 
-        frame_combination = tk.Frame(self.frame_upper, pady=10, bg=self.bg_color)
-        frame_box = tk.LabelFrame(frame_combination, padx=5, pady=5, text="Box")
+        # frame_combination = tk.Frame(self.frame_upper, pady=10, bg=self.bg_color)
+        frame_combination = tk.LabelFrame(self.frame_upper, padx=5, pady=5, text="Box")
         self.var_box = []
         chk_box = []
         n = 0.
         for i in range(8):
             self.var_box.append(tk.BooleanVar(value=False))
-            chk = tk.Checkbutton(frame_box, variable=self.var_box[i], text=str(i+1).rjust(2))
+            chk = tk.Checkbutton(frame_combination, variable=self.var_box[i], text=str(i+1).rjust(2))
             chk_box.append(chk)
             chk_box[i].grid(row=math.floor(n), column=i%8)
             n += 1/8
-        frame_box.pack(side=tk.LEFT)
 
-        frame_option = tk.LabelFrame(frame_combination, padx=5, pady=5, text="option")
-        self.chk_trn = tk.BooleanVar(value=False)
-        chk_turnup = tk.Checkbutton(frame_option, variable=self.chk_trn, text="1st<=>2nd")
-        chk_turnup.pack()
-        frame_option.pack(side=tk.LEFT, padx=10)
         frame_combination.grid(row=3, column=2, columnspan=3, sticky=tk.NW)
 
     def create_frame_expected_value(self):
@@ -292,6 +287,8 @@ class Application(tk.Frame):
                 self.racers = ["" for _ in range(8)]
 
             self.master.title(f"{self.dt} {self.place_jp} " + racetitle_text)
+            self.odds = 0.
+            self.selection = []
             for i in range(8):
                 self.var_racers[i].set(self.racers[i])
                 self.var_win_oddses[i].set("")
@@ -316,6 +313,11 @@ class Application(tk.Frame):
             self.var_place_bars[i].set("-")
             self.var_place2_oddses[i].set(p2_oddses[i])  
 
+        bettype = self.var_bettype.get()
+        if not bettype:
+            self.odds = 0.
+            self.selections = []
+
         if self.selections:
             oddses = []
             for ticket, odds in self.selections:
@@ -323,8 +325,6 @@ class Application(tk.Frame):
                 oddses.append(new_odds)
             self.odds = self.calc_syntheic_odds(oddses)
             self.betting_slip()
-
-
 
     def clear_output(self):
         self.textbox.delete("1.0", tk.END)
@@ -334,6 +334,7 @@ class Application(tk.Frame):
 
     def clear_checkbox(self):
         self.clear_output()
+        self.var_bettype.set(0)
         for w1, w2, w3, box in zip(self.var_wheel1st, self.var_wheel2nd, self.var_wheel3rd, self.var_box):
             w1.set(0)
             w2.set(0)
@@ -395,14 +396,13 @@ class Application(tk.Frame):
         return synodds, selections
 
     def calculation(self):
+        self.status.set("status")
         chk_bets = self.checked_bets()
         bettype = self.var_bettype.get()
         synodds = 0.
         selections = []
-        
-        # self.clear_output()
         self.outputs = []
-
+        print(chk_bets[0], chk_bets[1], chk_bets[2], chk_bets[3])
         if chk_bets[3]: # box
             bets = chk_bets[3]
             win_synodds, win_selections = self.calc_wins(bets)
@@ -451,17 +451,19 @@ class Application(tk.Frame):
                         bet = bet[2] + "=" + bet[0]
                         odds = self.odds_d[bet]
                     oddses.append(odds)
+            synodds = self.calc_syntheic_odds(oddses)
+            selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
+        # trifecta wheel
         elif len(chk_bets[0]) == 1 and len(chk_bets[1]) == 1 and chk_bets[2]:
             if bettype == 4: # trifecta
                 head = str(chk_bets[0][0]) + "-" + str(chk_bets[1][0]) + "-"
                 bets = [head + str(bet) for bet in chk_bets[2]]
                 oddses = [self.odds_d[bet] for bet in bets]
+                synodds = self.calc_syntheic_odds(oddses)
+                selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
+            else:
+                self.status.set("a bet type is invalid.")
 
-            synodds = self.calc_syntheic_odds(oddses)
-            selections = [(str(bet), odds) for bet, odds in zip(bets, oddses)]
-
-        #     self.odds, self.selections = synodds, selections
-        # self.betting_slip()
         return synodds, selections
 
     def calc(self):
