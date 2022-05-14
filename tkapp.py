@@ -5,6 +5,7 @@ import os
 import pickle
 import sys
 import tkinter as tk
+# from tkinter import ttk
 from scrape_odds import odds_dict
 
 place_d = {"kawaguchi": "川口", "isesaki": "伊勢崎", "hamamatsu": "浜松", "iizuka": "飯塚", "sanyo": "山陽"}
@@ -37,6 +38,8 @@ class Application(tk.Frame):
         self.bg_color = self.master.cget("background")
         self.textbox_bg_color = "GhostWhite"
         # self.bg_color = "pink"
+        # style = ttk.Style()
+        # style.theme_use('winnative')
 
         self.grid_propagate(False) # 子フレームのgridに対し親フレームサイズ固定
         self.create_frame_races()
@@ -69,25 +72,27 @@ class Application(tk.Frame):
         frame_races = tk.Frame(self.frame_upper, bg=self.bg_color)
         race_numbers = [race[0][2] for race in self.races if race[0]]
         race_numbers += ["-" for _ in range(12-len(race_numbers))]
+        # pixelVirtual = tk.PhotoImage(width=20, height=18)
+        # yellow = tk.PhotoImage(file="./yellow.png")
         buttons = []
         for i, num in enumerate(race_numbers):
-            button = tk.Button(frame_races, text=f"{num}", command=self.callback(num))
+            button = tk.Button(frame_races, text=f"{num}", 
+                                        # image=pixelVirtual, 
+                                        # compound=tk.CENTER,
+                                        command=self.callback(num))                                 
             buttons.append(button)
             buttons[i].pack(side=tk.LEFT, padx=2)
 
         frame_races.grid(row=0, column=0, columnspan=3, sticky=tk.W)
 
     def create_frame_buttons(self):
-        frame_buttons = tk.Frame(self.frame_upper, pady=10, bg=self.bg_color)
+        frame_buttons = tk.Frame(self.frame_upper, bg=self.bg_color)
 
         btn_update = tk.Button(frame_buttons, text="update", command=lambda: self.update())
-        btn_update.pack(side=tk.LEFT, padx=5)
-
         btn_calc = tk.Button(frame_buttons, text="calc", command=lambda: self.calc())
-        btn_calc.pack(side=tk.LEFT, padx=5)     
-
         btn_add = tk.Button(frame_buttons, text="add", command=lambda: self.add_calc())
-        btn_add.pack(side=tk.LEFT, padx=5)     
+        for btn in [btn_update, btn_calc, btn_add]:
+            btn.pack(side=tk.LEFT, padx=5, pady=10)    
 
         frame_buttons.grid(row=0, column=3) #, sticky=tk.NE)
 
@@ -210,8 +215,8 @@ class Application(tk.Frame):
 
     def create_frame_combination(self):
 
-        # frame_combination = tk.Frame(self.frame_upper, pady=10, bg=self.bg_color)
-        frame_combination = tk.LabelFrame(self.frame_upper, padx=5, pady=5, text="Box")
+        frame_comb = tk.Frame(self.frame_upper, bg=self.bg_color)
+        frame_combination = tk.LabelFrame(frame_comb, padx=5, pady=5, text="Combination")
         self.var_box = []
         chk_box = []
         n = 0.
@@ -221,8 +226,32 @@ class Application(tk.Frame):
             chk_box.append(chk)
             chk_box[i].grid(row=math.floor(n), column=i%8)
             n += 1/8
+        frame_combination.pack(side=tk.LEFT)
 
-        frame_combination.grid(row=3, column=2, columnspan=3, sticky=tk.NW)
+        frame_3rdcheck = tk.LabelFrame(frame_comb, text="3rd check", padx=5, pady=5, bg=self.bg_color)
+        self.var_3rdcheck = tk.IntVar(value=0)
+        rbn_uncheck = tk.Radiobutton(frame_3rdcheck, value=0, variable=self.var_3rdcheck, text="uncheck", command=lambda: self.third_uncheck())
+        rbn_chechk = tk.Radiobutton(frame_3rdcheck, value=1, variable=self.var_3rdcheck, text="check", command=lambda: self.third_check())
+        rbn_uncheck.pack(side=tk.LEFT)
+        rbn_chechk.pack(side=tk.LEFT)
+        frame_3rdcheck.pack(side=tk.LEFT, padx=10)
+
+        frame_comb.grid(row=3, column=2, columnspan=3, sticky=tk.NW)
+
+    def third_uncheck(self):
+        for v in self.var_wheel3rd:
+            v.set(0)
+
+    def third_check(self):
+        wheel1st = [chk.get() for chk in self.var_wheel1st]
+        indexes = [i+1 for i, chk in enumerate(wheel1st) if chk]
+        wheel2nd = [chk.get() for chk in self.var_wheel2nd]
+        indexes += [i+1 for i, chk in enumerate(wheel2nd) if chk]
+        for i, v in enumerate(self.var_wheel3rd):
+            if i+1 in indexes:
+                v.set(0)
+            else:
+                v.set(1)
 
     def create_frame_expected_value(self):
         frame_expected_value = tk.Frame(self.frame_upper, padx=3, pady=10, bg=self.bg_color)
