@@ -93,30 +93,54 @@ def odds_dict(dt, place, raceNo):
     
     odds_d = {}
     for t in winplace_df.itertuples():
-        odds_d[str(t.車番)] = t.単勝オッズ
-        p1, p2 = t.複勝オッズ.split("-")
-        odds_d["(" + str(t.車番)] = float(p1)
-        odds_d[str(t.車番) + ")"] = float(p2)
+        v = 0.0
+        if t.単勝オッズ != "-":
+            v = t.単勝オッズ
+        try:
+            value = float(v)
+            odds_d[str(t.車番)] = value
+        except:
+            pass
+        p1, p2 = 0.0, 0.0
+        p = t.複勝オッズ.split("-")
+        if p != ["", ""]:
+            p1, p2 = p[0], p[1]
+        try:
+            odds_d["(" + str(t.車番)] = float(p1)
+            odds_d[str(t.車番) + ")"] = float(p2)
+        except:
+            pass
 
     for i, t in enumerate(quinella_df.itertuples()):
         for j, v in enumerate(t[2::2]):
-            s = str(j+1) + "=" + str(j+i+2)
-            if not np.isnan(v):
-                odds_d[s] = v
+            key = str(j+1) + "=" + str(j+i+2)
+            try:
+                value = float(v)
+                if not np.isnan(value):
+                    odds_d[key] = value
+            except:
+                pass
 
     for i, t in enumerate(exacta_df.itertuples()):
         if i > 1:
             for j, v in enumerate(t[3:]):
-                value = float(v)
-                if not np.isnan(value):
-                    s = str(j+1) + "-" + str(i-1)
-                    odds_d[s] = value
+                try:
+                    value = float(v)
+                    if not np.isnan(value):
+                        key = str(j+1) + "-" + str(i-1)
+                        odds_d[key] = value
+                except:
+                    pass
 
     for i, t in enumerate(wide_df[2].itertuples()):
         for j, v in enumerate(t[2::2]):
-            s = str(j+1) + "w" + str(j+i+2)
-            if not type(v) == float:
-                odds_d[s] = float(v.split()[0])
+            key = str(j+1) + "w" + str(j+i+2)
+            if not type(v) == float: # not nan
+                try:
+                    value = float(v.split()[0])
+                    odds_d[key] = value
+                except:
+                    pass
 
     for df in trio_dfs:
         for i, (k, s) in enumerate(df.iteritems()):
@@ -125,16 +149,25 @@ def odds_dict(dt, place, raceNo):
                 tails = s.tolist()
             if i%2:
                 oddses = s.tolist()
-                for tail, oddses in zip(tails, oddses):
-                    if not math.isnan(tail):
-                        bet = head + "=" + str(int(tail))
-                        odds_d[bet] = oddses
+                for tail, v in zip(tails, oddses):
+                    try:
+                        value = float(v)
+                        if not math.isnan(tail):
+                            key = head + "=" + str(int(tail))
+                            odds_d[key] = value
+                    except:
+                        pass
 
     for trif in trifs:
         for df in trif[2:]:
             for t in df.itertuples():
-                s = "".join(t.車番.replace("→", "-").split())
-                odds_d[s] = t.オッズ
+                key = "".join(t.車番.replace("→", "-").split())
+                if t.オッズ != "-":
+                    try:
+                        value = float(t.オッズ)
+                        odds_d[key] = value
+                    except:
+                        pass
 
     return odds_d
 

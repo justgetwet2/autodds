@@ -339,7 +339,8 @@ class Application(tk.Frame):
         for i in range(8):
             self.var_win_oddses[i].set(win_oddses[i])
             self.var_place1_oddses[i].set(p1_oddses[i]) 
-            self.var_place_bars[i].set("-")
+            if type(p1_oddses[i]) == float:
+                self.var_place_bars[i].set("-")
             self.var_place2_oddses[i].set(p2_oddses[i])  
 
         bettype = self.var_bettype.get()
@@ -348,10 +349,11 @@ class Application(tk.Frame):
             self.selections = []
 
         if self.selections:
-            oddses = []
-            for ticket, odds in self.selections:
-                new_odds = self.odds_d[ticket]
-                oddses.append(new_odds)
+            # oddses = []
+            # for ticket, odds in self.selections:
+            #     new_odds = self.odds_d[ticket]
+            #     oddses.append(new_odds)
+            oddses = [odds for ticket, odds in self.selections]
             self.odds = self.calc_syntheic_odds(oddses)
             self.betting_slip()
 
@@ -386,6 +388,7 @@ class Application(tk.Frame):
         return w1_indexes, w2_indexes, w3_indexes, box_indexes
 
     def calc_syntheic_odds(self, l_odds):
+        # print(l_odds)
         return 1/np.reciprocal(l_odds).sum()
 
     def calc_wins(self, bets):
