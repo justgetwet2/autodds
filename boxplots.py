@@ -1,5 +1,6 @@
 ua = {"User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.57"}
 from bs4 import BeautifulSoup
+import datetime
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 fpath = "./fonts/Hiragino-Sans-GB-W3.ttf"
@@ -98,27 +99,47 @@ if __name__ == "__main__":
         dsc_s = " ".join(s for s in dsc if s.startswith(wea) or s.startswith(cnd) or s.startswith(tmp))
         racetitle = dt_s + " " + place + " " +  str(raceNo).rjust(2, "0") + "R " + racename + " " + dsc_s
         print(racetitle)
-
+        
+        handi_tags = soup.select("td.showElm.al-center.lh_1-6")
+        handi_tags = [tag for i, tag in enumerate(handi_tags) if not i%3]
+        handi_texts = [tag.text.strip().split("m")[0] for tag in handi_tags]
+        handis = [float(txt)/10 for txt in handi_texts]
+        # print(handis)
         racer_tags = soup.select("td.hideElm a")
+        racer_times = []
         for i, tag in enumerate(racer_tags):
-            if i: continue
-            print(tag.text)
-            print(tag.get("href"))
+            # if i: continue
+            racer_name = tag.text
             racer_url = oddspark + tag.get("href")
-            df = get_dfs(racer_url)[-1]
-            last_place, before_place = "", ""
+            print(racer_name, racer_url)
+            dfs = get_dfs(racer_url)
+            df = [df for df in dfs if df.columns[-1] == "異"][0]
+            # places = [row["開催場"] for i, row in df.iterrows() if i < 16]
+            pre_dt = datetime.datetime.now()
+            series_count = 0
+            race_times = []
             for j, row in df.iterrows():
                 # if j: continue
-                if j == 0:
-                    last_place = row["開催場"]
-                if not last_place == row["開催場"]:
-                    print("spam spam spam")
-                    before_place = row["開催場"]
-                if not before_place == "" and not before_place == row["開催場"]:
-                    last_place, before_place = "", ""
-                if last_place or before_place:
-                    print(last_place, before_place)
-                    print(row["開催場"], row["走路\u0020\u0020(天候)"], row["競走T"])
+                if series_count > 3: break
+                this_dt = datetime.datetime.strptime(row["年月日"], "%y/%m/%d")
+                delta_dt = pre_dt - this_dt
+                days = delta_dt.days
+                if days > 2:
+                    series_count += 1
+                pre_dt = this_dt
+                condition = row["走路\u0020\u0020(天候)"].split("(")[0]
+                if condition == "良":
+                    time_f = row["競走T"]
+                    if type(time_f) == float:
+                        if np.floor(time_f) == 3.0:
+                            race_time = time_f + handis[i] * 0.01
+                            race_times.append(race_time)
+            racer_times.append(race_times)
+
+    fig, ax = plt.subplots()
+    ax.boxplot(racer_times)
+    
+    plt.show()
             
     # filename = "./data/20220625_isesaki_data.pickle"
     # with open(filename, mode="rb") as f:
