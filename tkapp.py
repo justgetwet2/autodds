@@ -8,6 +8,12 @@ import tkinter as tk
 # from tkinter import ttk
 from scrape_odds import odds_dict
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.font_manager as fm
+fpath = "./fonts/Hiragino-Sans-GB-W3.ttf"
+fprop = fm.FontProperties(fname=fpath, size=10)
+
 place_d = {"kawaguchi": "川口", "isesaki": "伊勢崎", "hamamatsu": "浜松", "iizuka": "飯塚", "sanyo": "山陽"}
 
 class Application(tk.Frame):
@@ -55,6 +61,7 @@ class Application(tk.Frame):
         
         self.create_frame_textbox()
         self.create_frame_bets()
+        self.create_frame_matplot_button()
         self.frame_lower.pack(fill=tk.X)
 
         self.create_status_bar()
@@ -554,6 +561,28 @@ class Application(tk.Frame):
         if len(surplus) > 2:
             for output in surplus:
                 self.textbox.insert(tk.END, output + "\n")
+
+    def create_frame_matplot_button(self):
+        frame_matplot = tk.Frame(self.frame_lower, padx=5, pady=10, bg=self.bg_color)
+        matplot_button = tk.Button(frame_matplot, text="plot", command=lambda: self.matplot_window())
+        matplot_button.pack(side=tk.LEFT, padx=5)
+        frame_matplot.grid(row=0, column=3, sticky=tk.N)
+
+    def matplot_window(self):
+        root = tk.Toplevel(self)
+        root.title(f"matplot")
+
+        fig, ax = plt.subplots()
+        
+        x = np.linspace(0.0, 5.0)
+        y = np.cos(2 * np.pi * x) * np.exp(-x)
+        ax.plot(x, y)
+
+        canvas = FigureCanvasTkAgg(fig, master=root)  # Generate canvas instance, Embedding fig in root
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+
+        root.mainloop()
 
     def run(self):
         self.mainloop()

@@ -83,9 +83,9 @@ if __name__ == "__main__":
     placeEn_d = {'川口': 'kawaguchi', '伊勢崎': 'isesaki', '浜松': 'hamamatsu',\
                 '飯塚': 'iizuka', '山陽': 'sanyo'}
 
-    dt, place = "0625", "伊勢崎"
+    dt, place, r = "0626", "伊勢崎", 9
     races = []
-    for raceNo in [str(n) for n in range(1,2)]:
+    for raceNo in [str(n) for n in range(r, r+1)]:
         place_cd = placeCd_d[place]
         url = autorace + "/RaceList.do?" + f"raceDy={yyyy + dt}&placeCd={place_cd}&raceNo={raceNo}"
         soup = get_soup(url)
@@ -93,18 +93,20 @@ if __name__ == "__main__":
         dt_s = yyyy + "/" + dt[:2] + "/" + dt[2:]
         racename_tag = soup.select_one("#RCdata2 h3")
         racename = re.sub("\xa0", "", racename_tag.text.strip())
+        racename = place + " " +  str(raceNo).rjust(2, "0") + "R " + racename
         dsc_tag = soup.select_one("#RCdata2 .RCdst")
         dsc = dsc_tag.text.split()
         wea, cnd, tmp = "天候", "走路状況", "走路温度"
         dsc_s = " ".join(s for s in dsc if s.startswith(wea) or s.startswith(cnd) or s.startswith(tmp))
-        racetitle = dt_s + " " + place + " " +  str(raceNo).rjust(2, "0") + "R " + racename + " " + dsc_s
+        racetitle = dt_s + " " + racename + " " + dsc_s
         print(racetitle)
         
         handi_tags = soup.select("td.showElm.al-center.lh_1-6")
         handi_tags = [tag for i, tag in enumerate(handi_tags) if not i%3]
         handi_texts = [tag.text.strip().split("m")[0] for tag in handi_tags]
         handis = [float(txt)/10 for txt in handi_texts]
-        # print(handis)
+        handis[0] = -1.0
+        print(handis)
         racer_tags = soup.select("td.hideElm a")
         racer_times = []
         for i, tag in enumerate(racer_tags):
@@ -116,6 +118,9 @@ if __name__ == "__main__":
             df = [df for df in dfs if df.columns[-1] == "異"][0]
             # places = [row["開催場"] for i, row in df.iterrows() if i < 16]
             pre_dt = datetime.datetime.now()
+            race_dt = datetime.datetime.strptime(yyyy+dt, "%Y%m%d")
+            last_dt = datetime.datetime.strptime(df.iat[0, 0], "%y/%m/%d")
+            # print((race_dt - last_dt).days) # 1 or -1
             series_count = 0
             race_times = []
             for j, row in df.iterrows():
@@ -137,8 +142,12 @@ if __name__ == "__main__":
             racer_times.append(race_times)
 
     fig, ax = plt.subplots()
+    ax.set_title(racename, fontproperties=fprop)
     ax.boxplot(racer_times)
     
+    last_times = [x[0] for x in racer_times]
+    ax.plot(range(1, len(racer_times)+1), last_times, "o")
+
     plt.show()
             
     # filename = "./data/20220625_isesaki_data.pickle"
